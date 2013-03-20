@@ -8,7 +8,7 @@ BOOST_AUTO_TEST_CASE(Pull_HasElement_ReturnsElement)
 {
     BlockingQueue<int> q(10);
     q.Push(1);
-    int result = q.Pull();
+    int result = q.Pop();
     BOOST_CHECK_EQUAL(result, 1);
 }
 

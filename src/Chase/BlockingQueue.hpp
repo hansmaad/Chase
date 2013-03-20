@@ -1,43 +1,27 @@
-/// \file blocking_queue.hpp
-/// \brief Contains the BlockingQueue class template
-
 #ifndef BLOCKING_QUEUE_HPP
 #define BLOCKING_QUEUE_HPP
 
 #include <utility>
 #include <queue>
-
-#define HAS_STD_THREAD
-
-#ifdef HAS_STD_THREAD
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-namespace Detail { class DefaultThreadPolicy; }
-#else
-#include <boost/thread/condition_variable.hpp>
-#include <boost/thread/mutex.hpp>
-namespace Detail { class DefaultThreadPolicy; }
-#endif
+#include <type_traits>
+
 
 /// BlockingQueue class template.
 /// Producer threads, i.e. callers to Push methods will be blocked while the 
-/// queue is full. Consumer threads, i.e. callers to Pull methods will be
+/// queue is full. Consumer threads, i.e. callers to Pop methods will be
 /// blocked while the queue is empty.
 /// @param Item The type of work items to store.
-/// @param ThreadPolicy A policy for thread basics.
-template<
-    typename Item, 
-    typename ThreadPolicy 
-    = Detail::DefaultThreadPolicy
->
+template<typename Element>
 class BlockingQueue
 {
 public:
 	/// Construction with max size of the queue.
     /// @param queueSize The maximum size of the queue.
 	BlockingQueue(size_t queueSize) :
-        maxSize_(queueSize), queue_()
+        maxSize(queueSize), queue()
     {}
 
     /// Adds an element to the queue, waits while full.
@@ -45,8 +29,8 @@ public:
     template<typename T>
     void Push(T&& element)
     {
-        PushElement(std::forward<T>(element));
-        threading_.NotifyNotEmpty();
+        WaitAndPushElement(std::forward<T>(element));
+        NotifyNotEmpty();
     }
 
     /// Tries to add an alement to the queue, never waits.
@@ -56,169 +40,120 @@ public:
     template<typename T>
     bool TryPush(T&& element)
     {
-        Lock l = threading_.GetLock();
-        if (Full()) return false;
-        queue_.push(std::forward<T>(element));
-        threading_.NotifyNotEmpty();
+        Lock l = GetLock();
+        if (IsFull()) 
+            return false;
+        queue.push(std::forward<T>(element));
+        NotifyNotEmpty();
         return true;
     }
 
 	/// Removes and returns the next element from the queue, waits while empty.
     /// @return The next item in the queue.
-	Item Pull()
+	Element Pop()
     {
-        Item element(GetElement());
-        threading_.NotifyNotFull();
+        Element element(WaitAndPopElement());
+        NotifyNotFull();
 	    return element;
     }
 
-	/// Waits while queue is not empty.
+	/// Waits while queue is not empty. Returns when queue is empty.
 	void WaitWhileNotEmpty()
     {
-        Lock l = threading_.GetLock();
-	    while(!IsEmpty())
-            threading_.WaitWhileFull();
+        Lock l = GetLock();        
+        WaitWhileNotEmpty(l);
     }
 
     /// Returns true if the queue is empty.
     bool Empty() const
     {
-        Lock l = threading_.GetLock();
+        Lock l = GetLock();
 	    return IsEmpty();
     }
 
 private:
-	typedef std::queue<Item> Queue;
-	typedef typename ThreadPolicy::Lock Lock;
+	typedef std::queue<Element> Queue;
+    typedef std::mutex Mutex;
+	typedef std::condition_variable Condition;
+	typedef std::unique_lock<Mutex> Lock;
 
     BlockingQueue(BlockingQueue&);
     void operator=(BlockingQueue&);
 
-    bool Full() const
+    bool IsFull() const
     {
-        return queue_.size() >= maxSize_;
+        return queue.size() >= maxSize;
     }
 
     bool IsEmpty() const
     {
-        return queue_.empty();
+        return queue.empty();
     }
 
-    Item GetElement()
+    Element WaitAndPopElement()
     {
-        Lock l = threading_.GetLock();
-	    while(IsEmpty())
-            threading_.WaitWhileEmpty(l);
-        // TODO: Check move_if_noexcept here??
-	    Item i(std::move(queue_.front()));  
-	    queue_.pop();
+        static_assert(
+            std::is_nothrow_move_constructible<Element>::value ||
+            std::is_nothrow_copy_constructible<Element>::value,
+            "Element type mus be nothrow (move) constructible to "
+            "guarantee strong exception safety.");
+
+        Lock l = GetLock();
+        WaitWhileEmpty(l);
+	    Element i(std::move(queue.front()));  
+	    queue.pop();
 	    return i;
     }
 
     template<typename T>
-    void PushElement(T&& element)
+    void WaitAndPushElement(T&& element)
     {
-        Lock l = threading_.GetLock();
-	    while(Full())
-            threading_.WaitWhileFull(l);
-        queue_.push(std::forward<T>(element));
+        Lock lock = GetLock();
+        WaitWhileFull(lock);
+        queue.push(std::forward<T>(element));
     }
 
-    size_t maxSize_;
-	Queue queue_;
-    mutable ThreadPolicy threading_;
-};
-
-
-
-namespace Detail
-{
-
-#ifdef HAS_STD_THREAD
-/// Default threading policy.
-class DefaultThreadPolicy
-{
-	typedef std::mutex Mutex;
-	typedef std::condition_variable Condition;
-
-public:
-	typedef std::unique_lock<Mutex> Lock;
-
-    /// Acquires a scoped lock.
     Lock GetLock()
     {
-        return Lock(mutex_);
-    }
-    /// Notifies waiting consumer threads.
-    void NotifyNotEmpty()
-    {
-        notEmpty_.notify_one();
-    }
-    /// Notifies waiting producer threads.
-    void NotifyNotFull()
-    {
-        notFull_.notify_one();
-    }
-    /// Waits on empty condition.
-    void WaitWhileEmpty(Lock& l)
-    {
-        notEmpty_.wait(l);
-    }
-    /// Waits on full condition.
-    void WaitWhileFull(Lock& l)
-    {
-        notFull_.wait(l);
+        return Lock(mutex);
     }
 
-private:
-    Mutex mutex_;
-	Condition notEmpty_, notFull_;
+    void NotifyNotEmpty()
+    {
+        notEmpty.notify_one();
+    }
+
+    void NotifyNotFull()
+    {
+        notFull.notify_one();
+    }
+
+    void WaitWhileEmpty(Lock& lock)
+    {
+        while(IsEmpty())
+            notEmpty.wait(lock);
+    }
+
+    void WaitWhileFull(Lock& lock)
+    {
+        while(IsFull())
+            notFull.wait(lock);
+    }
+
+    void WaitWhileNotEmpty(Lock& lock)
+    {
+        while(!IsEmpty())
+            notFull.wait(lock);
+    }
+    
+    size_t maxSize;
+	Queue queue;
+    mutable Mutex mutex;
+	Condition notEmpty, notFull;
 };
 
 
-#else
-/// Default threading policy.
-class DefaultThreadPolicy
-{
-	typedef boost::mutex Mutex;
-	typedef boost::condition_variable Condition;
 
-public:
-	typedef boost::unique_lock<Mutex> Lock;
-
-    /// Acquires a scoped lock.
-    Lock GetLock()
-    {
-        return Lock(mutex_);
-    }
-    /// Notifies waiting consumer threads.
-    void NotifyNotEmpty()
-    {
-        notEmpty_.notify_one();
-    }
-    /// Notifies waiting producer threads.
-    void NotifyNotFull()
-    {
-        notFull_.notify_one();
-    }
-    /// Waits on empty condition.
-    void WaitWhileEmpty(Lock& l)
-    {
-        notEmpty_.wait(l);
-    }
-    /// Waits on full condition.
-    void WaitWhileFull(Lock& l)
-    {
-        notFull_.wait(l);
-    }
-
-private:
-    Mutex mutex_;
-	Condition notEmpty_, notFull_;
-};
-#endif
-
-}  // namespace detail
 
 #endif // BLOCKING_QUEUE_HPP
 

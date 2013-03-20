@@ -12,8 +12,9 @@ public:
     Uncopyable(Uncopyable&& other) :
         text(move(other.text))
     {
-
+        
     }
+
     Uncopyable& operator=(Uncopyable&& other)
     {
         text = move(other.text);
@@ -25,11 +26,11 @@ private:
     void operator=(Uncopyable&);
 };
 
-BOOST_AUTO_TEST_CASE(Pulwwl_HasElement_ReturnsElement)
+BOOST_AUTO_TEST_CASE(Pop_HasElement_ReturnsElement)
 {
     BlockingQueue<Uncopyable> q(3);
     q.Push(Uncopyable("hallo"));
-    Uncopyable u = q.Pull();
+    Uncopyable u = q.Pop();
     BOOST_CHECK_EQUAL(u.text, "hallo");
 }
 
