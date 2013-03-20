@@ -14,9 +14,13 @@ public:
     typedef BlockingQueue<std::string> InputQueue;
     typedef BlockingQueue<HttpResponse> ResponseQueue;
 
-    virtual void Start(
+    virtual void StartAsync(
         InputQueue& urlQueue, 
         ResponseQueue& responseQueue) = 0;
+
+    virtual void Wait() = 0;
+
+    virtual ~HttpClient() {}
 };
 
 #endif  // HTTP_CLIENT_HPP

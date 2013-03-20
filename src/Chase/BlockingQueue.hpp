@@ -18,9 +18,9 @@ template<typename Element>
 class BlockingQueue
 {
 public:
-	/// Construction with max size of the queue.
+    /// Construction with max size of the queue.
     /// @param queueSize The maximum size of the queue.
-	BlockingQueue(size_t queueSize) :
+    BlockingQueue(size_t queueSize) :
         maxSize(queueSize), queue()
     {}
 
@@ -48,17 +48,17 @@ public:
         return true;
     }
 
-	/// Removes and returns the next element from the queue, waits while empty.
+    /// Removes and returns the next element from the queue, waits while empty.
     /// @return The next item in the queue.
-	Element Pop()
+    Element Pop()
     {
         Element element(WaitAndPopElement());
         NotifyNotFull();
-	    return element;
+        return element;
     }
 
-	/// Waits while queue is not empty. Returns when queue is empty.
-	void WaitWhileNotEmpty()
+    /// Waits while queue is not empty. Returns when queue is empty.
+    void WaitWhileNotEmpty()
     {
         Lock l = GetLock();        
         WaitWhileNotEmpty(l);
@@ -68,14 +68,14 @@ public:
     bool Empty() const
     {
         Lock l = GetLock();
-	    return IsEmpty();
+        return IsEmpty();
     }
 
 private:
-	typedef std::queue<Element> Queue;
+    typedef std::queue<Element> Queue;
     typedef std::mutex Mutex;
-	typedef std::condition_variable Condition;
-	typedef std::unique_lock<Mutex> Lock;
+    typedef std::condition_variable Condition;
+    typedef std::unique_lock<Mutex> Lock;
 
     BlockingQueue(BlockingQueue&);
     void operator=(BlockingQueue&);
@@ -100,9 +100,9 @@ private:
 
         Lock l = GetLock();
         WaitWhileEmpty(l);
-	    Element i(std::move(queue.front()));  
-	    queue.pop();
-	    return i;
+        Element i(std::move(queue.front()));  
+        queue.pop();
+        return i;
     }
 
     template<typename T>
@@ -147,9 +147,9 @@ private:
     }
     
     size_t maxSize;
-	Queue queue;
+    Queue queue;
     mutable Mutex mutex;
-	Condition notEmpty, notFull;
+    Condition notEmpty, notFull;
 };
 
 

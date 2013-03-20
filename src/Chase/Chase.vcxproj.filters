@@ -39,6 +39,9 @@
     <ClCompile Include="InMemoryUrlRepositoryTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CrawlerTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HtmlSearch.hpp">
@@ -57,6 +60,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="InMemoryUrlRepository.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HttpClientStub.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

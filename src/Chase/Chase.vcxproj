@@ -70,6 +70,7 @@
     <ClCompile Include="BlockingQueueMoveTest.cpp" />
     <ClCompile Include="BlockingQueueTest.cpp" />
     <ClCompile Include="Crawler.cpp" />
+    <ClCompile Include="CrawlerTest.cpp" />
     <ClCompile Include="HtmlSearch.cpp" />
     <ClCompile Include="HtmlSearchTest.cpp" />
     <ClCompile Include="InMemoryUrlRepository.cpp" />
@@ -79,6 +80,7 @@
   <ItemGroup>
     <ClInclude Include="BlockingQueue.hpp" />
     <ClInclude Include="Crawler.hpp" />
+    <ClInclude Include="HttpClientStub.hpp" />
     <ClInclude Include="HtmlSearch.hpp" />
     <ClInclude Include="HttpClient.hpp" />
     <ClInclude Include="InMemoryUrlRepository.hpp" />
