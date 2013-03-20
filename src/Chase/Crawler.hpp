@@ -15,6 +15,8 @@ public:
 
 private:
     void FillUnvistedUrlQueue();
+    void ProcessNextResponse();
+    bool ShouldStopProcess() const;
 
     BlockingQueue<std::string> unvisitedUrls;
     BlockingQueue<HttpResponse> httpResponseQueue;

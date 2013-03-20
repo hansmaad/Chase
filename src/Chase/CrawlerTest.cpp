@@ -29,6 +29,7 @@ BOOST_AUTO_TEST_CASE(HasUnvisitedUrls_IsEmpty_IsFalse)
     httpClient.AddLink("http://www.google.de", "http://www.google.com");
     repository.AddUrls(std::vector<std::string>(1, "http://www.google.de"));
     crawler.Crawl();
+    BOOST_CHECK(repository.Contains("http://www.google.com"));
 }
 
 

@@ -14,6 +14,10 @@ public:
     std::string NextUnvisited() override;
     void PopNextUnvisited() override;
 
+    bool Contains(const std::string& url)
+    {
+        return urls.find(url) != end(urls);
+    }
 private:
     std::unordered_set<std::string> urls;
     std::deque<std::string> unvisitedUrls;

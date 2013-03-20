@@ -17,13 +17,10 @@ void Crawler::Crawl()
     FillUnvistedUrlQueue();    
     httpClient->StartAsync(unvisitedUrls, httpResponseQueue);
 
-    HtmlSearch htmlSearch;
     for(;;)
     {
-        auto next = httpResponseQueue.Pop();
-        auto searchResult = htmlSearch.Search(next.body);
-        urlRepository->AddUrls(std::move(searchResult.links));
-        if (!urlRepository->HasUnvisitedUrls())
+        ProcessNextResponse();
+        if (ShouldStopProcess())
         {
             unvisitedUrls.Interrupt();
             break;
@@ -46,4 +43,17 @@ void Crawler::FillUnvistedUrlQueue()
 
         urlRepository->PopNextUnvisited();
     }
+}
+
+void Crawler::ProcessNextResponse()
+{
+    HtmlSearch htmlSearch;
+    auto next = httpResponseQueue.Pop();
+    auto searchResult = htmlSearch.Search(next.body);
+    urlRepository->AddUrls(std::move(searchResult.links));
+}
+
+bool Crawler::ShouldStopProcess() const
+{
+    return !urlRepository->HasUnvisitedUrls();
 }
