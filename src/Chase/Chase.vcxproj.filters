@@ -65,5 +65,8 @@
     <ClInclude Include="HttpClientStub.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HtmlTestContent.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

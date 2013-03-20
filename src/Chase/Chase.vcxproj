@@ -49,7 +49,7 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>"$(TargetDir)\$(TargetName).exe" --result_code=no --report_level=no</Command>
+      <Command>"$(TargetDir)\$(TargetName).exe" --run_test=CrawlerTest --result_code=no --report_level=no</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClInclude Include="BlockingQueue.hpp" />
     <ClInclude Include="Crawler.hpp" />
+    <ClInclude Include="HtmlTestContent.hpp" />
     <ClInclude Include="HttpClientStub.hpp" />
     <ClInclude Include="HtmlSearch.hpp" />
     <ClInclude Include="HttpClient.hpp" />

@@ -1,5 +1,6 @@
 #include <boost/test/unit_test.hpp>
 #include "HtmlSearch.hpp"
+#include "HtmlTestContent.hpp"
 
 struct HtmlSearchTestFixture
 {
@@ -10,26 +11,18 @@ struct HtmlSearchTestFixture
 
 	void MinimalHtml5()
 	{
-		doc = R"(
-		<!doctype html>
-		<head>
-		</head>
-		<body>
-		</body>
-		</html>)";
+		doc.clear();
+        doc.append(Html5Begin());
+		doc.append(Html5End());
 	}
 
 	void WithBody(const std::string& content)
 	{
 		doc.clear();
-		doc.append(R"(
-		<!doctype html>
-		<head>
-		</head>
-		<body>)");
+        doc.append(Html5Begin());
 
 		doc.append(content);
-		doc.append("</body></html>");
+		doc.append(Html5End());
 	}
 
 	void Search()

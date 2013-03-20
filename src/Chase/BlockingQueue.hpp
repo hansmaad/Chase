@@ -9,6 +9,10 @@
 #include <type_traits>
 
 
+class BlockingQueueInterruptedException
+{
+};
+
 /// BlockingQueue class template.
 /// Producer threads, i.e. callers to Push methods will be blocked while the 
 /// queue is full. Consumer threads, i.e. callers to Pop methods will be
@@ -21,7 +25,7 @@ public:
     /// Construction with max size of the queue.
     /// @param queueSize The maximum size of the queue.
     BlockingQueue(size_t queueSize) :
-        maxSize(queueSize), queue()
+        maxSize(queueSize), interrupted(false), queue()
     {}
 
     /// Adds an element to the queue, waits while full.
@@ -71,6 +75,17 @@ public:
         return IsEmpty();
     }
 
+    /// After call the Push & Pop methods will throw a
+    /// BlockingQueueInterruptedException. Use this method to notify waiting
+    /// threads that no more elements will pushed to the queue.
+    void Interrupt()
+    {
+        Lock lock = GetLock();
+        interrupted = true;
+        NotifyNotEmpty();
+        NotifyNotFull();
+    }
+
 private:
     typedef std::queue<Element> Queue;
     typedef std::mutex Mutex;
@@ -100,6 +115,8 @@ private:
 
         Lock l = GetLock();
         WaitWhileEmpty(l);
+        if (interrupted)
+            throw BlockingQueueInterruptedException();
         Element i(std::move(queue.front()));  
         queue.pop();
         return i;
@@ -130,23 +147,26 @@ private:
 
     void WaitWhileEmpty(Lock& lock)
     {
-        while(IsEmpty())
+        while(IsEmpty() && !interrupted)
+        {
             notEmpty.wait(lock);
+        }
     }
 
     void WaitWhileFull(Lock& lock)
     {
-        while(IsFull())
+        while(IsFull() && !interrupted)
             notFull.wait(lock);
     }
 
     void WaitWhileNotEmpty(Lock& lock)
     {
-        while(!IsEmpty())
+        while(!IsEmpty() && !interrupted)
             notFull.wait(lock);
     }
     
     size_t maxSize;
+    bool interrupted;
     Queue queue;
     mutable Mutex mutex;
     Condition notEmpty, notFull;

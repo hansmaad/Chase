@@ -1,5 +1,6 @@
-#include "Crawler.hpp"
 #include <future>
+#include "Crawler.hpp"
+#include "HtmlSearch.hpp"
 
 
 Crawler::Crawler(UrlRepository& repository, HttpClient& httpClient) :
@@ -13,8 +14,23 @@ Crawler::Crawler(UrlRepository& repository, HttpClient& httpClient) :
 
 void Crawler::Crawl()
 {
-    FillUnvistedUrlQueue();
+    FillUnvistedUrlQueue();    
     httpClient->StartAsync(unvisitedUrls, httpResponseQueue);
+
+    HtmlSearch htmlSearch;
+    for(;;)
+    {
+        auto next = httpResponseQueue.Pop();
+        auto searchResult = htmlSearch.Search(next.body);
+        urlRepository->AddUrls(std::move(searchResult.links));
+        if (!urlRepository->HasUnvisitedUrls())
+        {
+            unvisitedUrls.Interrupt();
+            break;
+        }
+        FillUnvistedUrlQueue();
+    }
+
     httpClient->Wait();
 }
 
@@ -24,7 +40,10 @@ void Crawler::FillUnvistedUrlQueue()
     {
         bool queueIsFull = !unvisitedUrls.TryPush(
             urlRepository->NextUnvisited());
+
         if (queueIsFull)
             break;
+
+        urlRepository->PopNextUnvisited();
     }
 }

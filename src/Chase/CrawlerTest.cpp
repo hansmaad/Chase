@@ -26,9 +26,9 @@ BOOST_FIXTURE_TEST_SUITE(CrawlerTest, CrawlerTestFixture)
 
 BOOST_AUTO_TEST_CASE(HasUnvisitedUrls_IsEmpty_IsFalse)
 {
-    //crawler.Crawl();
-    auto f = std::async(std::launch::async, []() { });
-    f.wait();
+    httpClient.AddLink("http://www.google.de", "http://www.google.com");
+    repository.AddUrls(std::vector<std::string>(1, "http://www.google.de"));
+    crawler.Crawl();
 }
 
 
