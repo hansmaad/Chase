@@ -50,6 +50,8 @@ public:
         links.emplace(std::move(from), std::move(to));
     }
 
+    std::vector<std::string> visits;
+
 protected:
     void Run() override
     {
@@ -78,6 +80,7 @@ private:
     void PerformNext()
     {
         auto nextUrl = GetNextUrl();
+        visits.push_back(nextUrl);
         HttpResponse response;
         response.body = Html5Begin();
 
