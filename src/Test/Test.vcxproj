@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B326C47A-8C8D-44C5-B4D5-3E5E511DA2CF}</ProjectGuid>
-    <RootNamespace>Chase</RootNamespace>
+    <ProjectGuid>{56EEF884-7F7C-43F9-BC4E-4D45FB4F9A76}</ProjectGuid>
+    <RootNamespace>Test</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -43,14 +43,14 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\Chase</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>"$(TargetDir)\$(TargetName).exe" --result_code=no --report_level=no</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -59,6 +59,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>..\Chase</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -68,18 +69,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Crawler.cpp" />
-    <ClCompile Include="HtmlSearch.cpp" />
-    <ClCompile Include="InMemoryUrlRepository.cpp" />
+    <ClCompile Include="..\Chase\Crawler.cpp" />
+    <ClCompile Include="..\Chase\HtmlSearch.cpp" />
+    <ClCompile Include="..\Chase\InMemoryUrlRepository.cpp" />
+    <ClCompile Include="BlockingQueueMoveTest.cpp" />
+    <ClCompile Include="BlockingQueueTest.cpp" />
+    <ClCompile Include="CrawlerTest.cpp" />
+    <ClCompile Include="HtmlSearchTest.cpp" />
+    <ClCompile Include="InMemoryUrlRepositoryTest.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BlockingQueue.hpp" />
-    <ClInclude Include="Crawler.hpp" />
-    <ClInclude Include="HtmlSearch.hpp" />
-    <ClInclude Include="HttpClient.hpp" />
-    <ClInclude Include="InMemoryUrlRepository.hpp" />
-    <ClInclude Include="UrlRepository.hpp" />
+    <ClInclude Include="..\Chase\BlockingQueue.hpp" />
+    <ClInclude Include="..\Chase\Crawler.hpp" />
+    <ClInclude Include="..\Chase\HtmlSearch.hpp" />
+    <ClInclude Include="..\Chase\HttpClient.hpp" />
+    <ClInclude Include="..\Chase\InMemoryUrlRepository.hpp" />
+    <ClInclude Include="..\Chase\UrlRepository.hpp" />
+    <ClInclude Include="HtmlTestContent.hpp" />
+    <ClInclude Include="HttpClientStub.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

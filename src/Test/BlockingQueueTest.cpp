@@ -1,6 +1,6 @@
 #include <boost/test/unit_test.hpp>
 #include <string>
-#include <thread>
+#include <future>
 #include <chrono>
 #include "BlockingQueue.hpp"
 
@@ -18,7 +18,7 @@ BOOST_AUTO_TEST_CASE(Pop_HasElement_ReturnsElement)
 BOOST_AUTO_TEST_CASE(Pop_WaitsOnEmptyQueue_ThrowsInterruptedExceptionWhenInterrupted)
 {
     BlockingQueue<std::string> queue(5);
-    std::thread t([&queue]()
+    auto f = std::async(std::launch::async, [&queue]()
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         queue.Interrupt();
@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(Pop_WaitsOnEmptyQueue_ThrowsInterruptedExceptionWhenInterru
         interrupted = true;
     }
     BOOST_CHECK(interrupted);
-    t.join();
+    f.wait();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
