@@ -24,8 +24,6 @@ private:
     UrlRepository* urlRepository;
     HttpClient* httpClient;
 
-
-
 };
 
 

@@ -2,5 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8.3 FATAL_ERROR)
 
 PROJECT(Chase)
 
-ADD_SUBDIRECTORY(src)
-ADD_SUBDIRECTORY(test)
+
+add_subdirectory(src)
+add_subdirectory(test)
+add_subdirectory(lib/cpp-netlib)

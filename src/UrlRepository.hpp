@@ -8,7 +8,7 @@
 class UrlRepository
 {
 public:
-    virtual void AddUrls(std::vector<std::string> newUrls) = 0;
+    virtual void AddUrls(const std::vector<std::string>& newUrls) = 0;
     virtual bool HasUnvisitedUrls() const = 0;
     virtual std::string NextUnvisited() = 0;
     virtual void PopNextUnvisited() = 0;

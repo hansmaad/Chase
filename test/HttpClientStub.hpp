@@ -80,12 +80,15 @@ private:
 
     void PerformNext()
     {
-        auto nextUrl = GetNextUrl();
-        visits.push_back(nextUrl);
         HttpResponse response;
         response.body = Html5Begin();
+        response.uri = GetNextUrl();
 
-        auto linksRange = links.equal_range(nextUrl);
+        //auto nextUrl = GetNextUrl();
+        visits.push_back(response.uri);
+
+
+        auto linksRange = links.equal_range(response.uri);
         for(auto it = linksRange.first; it != linksRange.second; ++it)
         {
             response.body.append(MakeAnchor(it->second));

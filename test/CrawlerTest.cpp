@@ -70,7 +70,17 @@ BOOST_AUTO_TEST_CASE(Crawl_LinkChain_AllAddedToRepository)
     BOOST_CHECK_EQUAL(VisitedCount("http://c.de"), 1);
     BOOST_CHECK_EQUAL(VisitedCount("http://d.de"), 1);
     BOOST_CHECK_EQUAL(VisitedCount("http://e.de"), 1);
+}
 
+BOOST_AUTO_TEST_CASE(Crawl_HasRelativeLinks_LinksResolved)
+{
+    httpClient.AddLink("http://a.de", "b");
+    httpClient.AddLink("http://a.de", "c");
+    repository.AddUrls(std::vector<std::string>(1, "http://a.de"));
+    crawler.Crawl();
+    BOOST_CHECK(repository.Contains("http://a.de"));
+    BOOST_CHECK(repository.Contains("http://a.de/b"));
+    BOOST_CHECK(repository.Contains("http://a.de/c"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

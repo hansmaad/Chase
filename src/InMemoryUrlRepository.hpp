@@ -9,7 +9,7 @@
 class InMemoryUrlRepository : public UrlRepository
 {
 public:
-    void AddUrls(std::vector<std::string> newUrls) override;
+    void AddUrls(const std::vector<std::string>& newUrls) override;
     bool HasUnvisitedUrls() const override;
     std::string NextUnvisited() override;
     void PopNextUnvisited() override;

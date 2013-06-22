@@ -1,5 +1,4 @@
 #include <boost/test/unit_test.hpp>
-
 #include <string>
 #include "BlockingQueue.hpp"
 
@@ -9,13 +8,13 @@ class Uncopyable
 {
 public:
     Uncopyable(const char* t) : text(t){}
-    Uncopyable(Uncopyable&& other) :
+    Uncopyable(Uncopyable&& other) noexcept :
         text(move(other.text))
     {
         
     }
 
-    Uncopyable& operator=(Uncopyable&& other)
+    Uncopyable& operator=(Uncopyable&& other) noexcept
     {
         text = move(other.text);
         return *this;

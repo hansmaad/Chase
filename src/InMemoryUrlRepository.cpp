@@ -2,7 +2,7 @@
 
 
 
-void InMemoryUrlRepository::AddUrls(std::vector<std::string> newUrls)
+void InMemoryUrlRepository::AddUrls(const std::vector<std::string>& newUrls)
 {
     for(auto& url : newUrls)
     {

@@ -5,7 +5,7 @@
 
 struct HttpResponse
 {
-    std::string header, body;
+    std::string uri, header, body;
 };
 
 class HttpClient
