@@ -107,12 +107,13 @@ private:
 
     Element WaitAndPopElement()
     {
+        /*
         static_assert(
             std::is_nothrow_move_constructible<Element>::value ||
             std::is_nothrow_copy_constructible<Element>::value,
             "Element type mus be nothrow (move) constructible to "
             "guarantee strong exception safety.");
-
+        */
         Lock l = GetLock();
         WaitWhileEmpty(l);
         if (interrupted)

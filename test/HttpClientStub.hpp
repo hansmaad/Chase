@@ -47,7 +47,8 @@ class HttpClientStub : public HttpClientBase
 public:
     void AddLink(std::string from, std::string to)
     {
-        links.emplace(std::move(from), std::move(to));
+        //links.emplace(std::move(from), std::move(to));
+        links.insert(std::make_pair(std::move(from), std::move(to)));
     }
 
     std::vector<std::string> visits;
