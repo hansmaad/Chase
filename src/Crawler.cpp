@@ -12,6 +12,12 @@ Crawler::Crawler(UrlRepository& repository, HttpClient& httpClient) :
 
 }
 
+void Crawler::AddLinkFilter(std::unique_ptr<LinkFilter> filter)
+{
+    LinkFilter = move(filter);
+}
+
+
 void Crawler::Crawl()
 {
     FillUnvistedUrlQueue();    
@@ -49,9 +55,8 @@ namespace
 {
 
 inline void ResolveLinks(HtmlSearchResult& searchResult,
-                         const std::string& baseUrl)
-{
-    auto base = network::uri{baseUrl};
+                         const network::uri& base)
+{    
     for(auto& link : searchResult.links)
     {
         auto linkUrl = base.resolve(
@@ -69,7 +74,12 @@ void Crawler::ProcessNextResponse()
     auto next = httpResponseQueue.Pop();
     auto searchResult = htmlSearch.Search(next.body);
 
-    ResolveLinks(searchResult, next.uri);
+    auto base = network::uri{next.uri};
+    ResolveLinks(searchResult, base);
+    if (linkFilter)
+    {
+    }
+
     urlRepository->AddUrls(std::move(searchResult.links));
 }
 

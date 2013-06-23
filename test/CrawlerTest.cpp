@@ -22,6 +22,12 @@ struct CrawlerTestFixture
         return std::count(begin(httpClient.visits), end(httpClient.visits), url);
     }
 
+    void StartCrawling(std::string startUrl)
+    {
+        repository.AddUrls(std::vector<std::string>(1, move(startUrl)));
+        crawler.Crawl();
+    }
+
     HttpClientStub httpClient;
     InMemoryUrlRepository repository;
     Crawler crawler;
@@ -32,8 +38,7 @@ BOOST_FIXTURE_TEST_SUITE(CrawlerTest, CrawlerTestFixture)
 BOOST_AUTO_TEST_CASE(Crawl_SingleLink_LinkTargetAddedToRepository_BothVisitedOnce)
 {
     httpClient.AddLink("http://www.google.de", "http://www.google.com");
-    repository.AddUrls(std::vector<std::string>(1, "http://www.google.de"));
-    crawler.Crawl();
+    StartCrawling("http://www.google.de");
     BOOST_CHECK(repository.Contains("http://www.google.com"));
     BOOST_CHECK_EQUAL(VisitedCount("http://www.google.de"), 1);
     BOOST_CHECK_EQUAL(VisitedCount("http://www.google.com"), 1);
@@ -44,8 +49,7 @@ BOOST_AUTO_TEST_CASE(Crawl_BackLink_BothVisitedOnlyOnce)
 {
     httpClient.AddLink("http://www.google.de", "http://www.google.com");
     httpClient.AddLink("http://www.google.com", "http://www.google.de");
-    repository.AddUrls(std::vector<std::string>(1, "http://www.google.de"));
-    crawler.Crawl();
+    StartCrawling("http://www.google.de");
     BOOST_CHECK(repository.Contains("http://www.google.com"));
     BOOST_CHECK_EQUAL(VisitedCount("http://www.google.de"), 1);
     BOOST_CHECK_EQUAL(VisitedCount("http://www.google.com"), 1);
@@ -58,8 +62,7 @@ BOOST_AUTO_TEST_CASE(Crawl_LinkChain_AllAddedToRepository)
     httpClient.AddLink("http://c.de", "http://d.de");
     httpClient.AddLink("http://d.de", "http://e.de");
     httpClient.AddLink("http://e.de", "http://c.de");
-    repository.AddUrls(std::vector<std::string>(1, "http://a.de"));
-    crawler.Crawl();
+    StartCrawling("http://a.de");
     BOOST_CHECK(repository.Contains("http://a.de"));
     BOOST_CHECK(repository.Contains("http://b.de"));
     BOOST_CHECK(repository.Contains("http://c.de"));
@@ -76,11 +79,22 @@ BOOST_AUTO_TEST_CASE(Crawl_HasRelativeLinks_LinksResolved)
 {
     httpClient.AddLink("http://a.de", "b");
     httpClient.AddLink("http://a.de", "c");
-    repository.AddUrls(std::vector<std::string>(1, "http://a.de"));
-    crawler.Crawl();
+    StartCrawling("http://a.de");
     BOOST_CHECK(repository.Contains("http://a.de"));
     BOOST_CHECK(repository.Contains("http://a.de/b"));
     BOOST_CHECK(repository.Contains("http://a.de/c"));
+}
+
+BOOST_AUTO_TEST_CASE(Crawl_WithExternalFilter_DoesNotFollowExternalLinks)
+{
+    httpClient.AddLink("http://a.de", "b");
+    httpClient.AddLink("http://a.de/b", "http://b.de");
+    httpClient.AddLink("http://a.de/b", "http://a.de/c");
+    StartCrawling("http://a.de");
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de"), 1);
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de/b"), 1);
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de/c"), 1);
+    BOOST_CHECK_EQUAL(VisitedCount("http://b.de"), 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

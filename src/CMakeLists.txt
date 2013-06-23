@@ -1,4 +1,26 @@
+MESSAGE(STATUS "Setting up chase ...")
+
 aux_source_directory(. CHASE_SRC)
+file( GLOB header_files *.hpp )
+
+SET(Boost_USE_STATIC_LIBS        ON)
+SET(Boost_USE_MULTITHREADED      ON)
+
+
+INCLUDE_DIRECTORIES (${Boost_INCLUDE_DIRS} ${Uri_SOURCE_DIR}/src)
+ADD_DEFINITIONS (${Boost_DEFINITIONS})
+LINK_DIRECTORIES ( ${Boost_LIBRARY_DIRS} )
+
+# enable c++11 for GNU derivates
+IF (CMAKE_COMPILER_IS_GNUCXX)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+ENDIF (CMAKE_COMPILER_IS_GNUCXX)
+
+add_executable (Chase ${CHASE_SRC})
+SET_TARGET_PROPERTIES(Chase PROPERTIES LINKER_LANGUAGE CXX)
+TARGET_LINK_LIBRARIES(Chase ${Boost_LIBRARIES} pthread cppnetlib-uri ${LINKFLAGS})
+
+MESSAGE(STATUS "Done!")
 
 
 

@@ -3,6 +3,8 @@ MESSAGE(STATUS "Setting up unit testing ...")
 
 aux_source_directory(. UNIT_TEST_SRC)
 aux_source_directory(../src CHASE_SRC)
+list(REMOVE_ITEM CHASE_SRC "../src/Main.cpp")
+
 INCLUDE_DIRECTORIES ("${CMAKE_SOURCE_DIR}/src")
 
 SET(Boost_USE_STATIC_LIBS        ON)
