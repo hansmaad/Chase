@@ -18,7 +18,9 @@ public:
     {
         return urls.find(url) != end(urls);
     }
-private:
+
+
+//private:
     std::unordered_set<std::string> urls;
     std::deque<std::string> unvisitedUrls;
 };

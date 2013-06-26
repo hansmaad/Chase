@@ -8,6 +8,8 @@
 #include "UrlRepository.hpp"
 #include "LinkFilter.hpp"
 
+
+
 class Crawler
 {
 public:
@@ -21,6 +23,9 @@ private:
     void FillUnvistedUrlQueue();
     void ProcessNextResponse();
     bool ShouldStopProcess() const;
+    std::vector<std::string> ResolveLinks(
+            const std::string& pageUri,
+            const std::vector<std::string>& searchResult);
 
     BlockingQueue<std::string> unvisitedUrls;
     BlockingQueue<HttpResponse> httpResponseQueue;

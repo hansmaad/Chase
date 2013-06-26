@@ -1,6 +1,7 @@
 
 MESSAGE(STATUS "Setting up unit testing ...")
 
+file(GLOB header_files *.hpp)
 aux_source_directory(. UNIT_TEST_SRC)
 aux_source_directory(../src CHASE_SRC)
 list(REMOVE_ITEM CHASE_SRC "../src/Main.cpp")
@@ -25,7 +26,7 @@ ENDIF (CMAKE_COMPILER_IS_GNUCXX)
 
 add_executable (ChaseTest ${UNIT_TEST_SRC} ${CHASE_SRC})
 SET_TARGET_PROPERTIES(ChaseTest PROPERTIES LINKER_LANGUAGE CXX)
-TARGET_LINK_LIBRARIES(ChaseTest ${Boost_LIBRARIES} pthread cppnetlib-uri ${LINKFLAGS})
+TARGET_LINK_LIBRARIES(ChaseTest ${Boost_LIBRARIES} pthread cppnetlib ${LINKFLAGS})
 ADD_DEPENDENCIES(ChaseTest Chase)
 
 MESSAGE(STATUS "Done!")

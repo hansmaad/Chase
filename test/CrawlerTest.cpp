@@ -2,7 +2,7 @@
 #include "HttpClientStub.hpp"
 #include "Crawler.hpp"
 #include "InMemoryUrlRepository.hpp"
-
+#include "ExternalLinkFilter.hpp"
 
 #include <future>
 
@@ -87,6 +87,7 @@ BOOST_AUTO_TEST_CASE(Crawl_HasRelativeLinks_LinksResolved)
 
 BOOST_AUTO_TEST_CASE(Crawl_WithExternalFilter_DoesNotFollowExternalLinks)
 {
+    crawler.SetLinkFilter(std::unique_ptr<LinkFilter>(new ExternalLinkFilter));
     httpClient.AddLink("http://a.de", "b");
     httpClient.AddLink("http://a.de/b", "http://b.de");
     httpClient.AddLink("http://a.de/b", "http://a.de/c");

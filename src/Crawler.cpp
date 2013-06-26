@@ -1,4 +1,5 @@
 #include <future>
+#include <algorithm>
 #include "Crawler.hpp"
 #include "HtmlSearch.hpp"
 #include <network/uri.hpp>
@@ -12,9 +13,9 @@ Crawler::Crawler(UrlRepository& repository, HttpClient& httpClient) :
 
 }
 
-void Crawler::AddLinkFilter(std::unique_ptr<LinkFilter> filter)
+void Crawler::SetLinkFilter(std::unique_ptr<LinkFilter> filter)
 {
-    LinkFilter = move(filter);
+    linkFilter = move(filter);
 }
 
 
@@ -51,36 +52,33 @@ void Crawler::FillUnvistedUrlQueue()
     }
 }
 
-namespace
-{
 
-inline void ResolveLinks(HtmlSearchResult& searchResult,
-                         const network::uri& base)
-{    
-    for(auto& link : searchResult.links)
+std::vector<std::string> Crawler::ResolveLinks(
+        const std::string& pageUri,
+        const std::vector<std::string>& links)
+{
+    auto baseUri = network::uri{pageUri};
+    std::vector<std::string> urls;
+    urls.reserve((links.size()));
+    for(auto& link : links)
     {
-        auto linkUrl = base.resolve(
+        auto linkUrl = baseUri.resolve(
                     network::uri{link},
                     network::uri_comparison_level::string_comparison);
-        link = linkUrl.string();
+        if (!linkFilter || linkFilter->ShouldFollowLink(baseUri, linkUrl))
+            urls.push_back(linkUrl.string());
     }
-}
 
+    return urls;
 }
 
 void Crawler::ProcessNextResponse()
 {
     HtmlSearch htmlSearch;
-    auto next = httpResponseQueue.Pop();
-    auto searchResult = htmlSearch.Search(next.body);
+    auto nextResponse = httpResponseQueue.Pop();
+    auto searchResult = htmlSearch.Search(nextResponse.body);
 
-    auto base = network::uri{next.uri};
-    ResolveLinks(searchResult, base);
-    if (linkFilter)
-    {
-    }
-
-    urlRepository->AddUrls(std::move(searchResult.links));
+    urlRepository->AddUrls(ResolveLinks(nextResponse.uri, searchResult.links));
 }
 
 bool Crawler::ShouldStopProcess() const
