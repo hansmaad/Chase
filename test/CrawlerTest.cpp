@@ -3,7 +3,7 @@
 #include "Crawler.hpp"
 #include "InMemoryUrlRepository.hpp"
 #include "ExternalLinkFilter.hpp"
-
+#include "CrawlerObserver.hpp"
 #include <future>
 
 
@@ -97,5 +97,26 @@ BOOST_AUTO_TEST_CASE(Crawl_WithExternalFilter_DoesNotFollowExternalLinks)
     BOOST_CHECK_EQUAL(VisitedCount("http://a.de/c"), 1);
     BOOST_CHECK_EQUAL(VisitedCount("http://b.de"), 0);
 }
+
+BOOST_AUTO_TEST_CASE(Crawl_HasObserver_AllObserverNotified)
+{
+    int counter = 0;
+    struct ObserverMock : CrawlerObserver
+    {
+        int* c;
+        void NotifyResponse(const HttpResponse&) override {
+            ++(*c);
+        }
+    };
+    ObserverMock m1, m2;
+    m1.c = m2.c = &counter;
+
+    crawler.AddObserver(&m1);
+    crawler.AddObserver(&m2);
+    httpClient.AddLink("http://www.google.de", "http://www.google.com");
+    StartCrawling("http://www.google.de");
+    BOOST_CHECK_EQUAL(counter, 4);
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()

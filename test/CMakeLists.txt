@@ -5,6 +5,7 @@ file(GLOB header_files *.hpp)
 aux_source_directory(. UNIT_TEST_SRC)
 aux_source_directory(../src CHASE_SRC)
 list(REMOVE_ITEM CHASE_SRC "../src/Main.cpp")
+list(REMOVE_ITEM CHASE_SRC "../src/MultiHttpClient.cpp")
 
 INCLUDE_DIRECTORIES ("${CMAKE_SOURCE_DIR}/src")
 

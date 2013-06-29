@@ -130,7 +130,7 @@ private:
         queue.push(std::forward<T>(element));
     }
 
-    Lock GetLock()
+    Lock GetLock() const
     {
         return Lock(mutex);
     }

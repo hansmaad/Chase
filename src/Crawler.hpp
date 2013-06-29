@@ -9,6 +9,8 @@
 #include "LinkFilter.hpp"
 
 
+class CrawlerObserver;
+struct HttpResponse;
 
 class Crawler
 {
@@ -17,7 +19,15 @@ public:
 
     void Crawl();
 
-    void SetLinkFilter(std::unique_ptr<LinkFilter> filter);
+    void SetLinkFilter(std::unique_ptr<LinkFilter> filter)
+    {
+        linkFilter = move(filter);
+    }
+
+    void AddObserver(CrawlerObserver* observer)
+    {
+        observers.push_back(observer);
+    }
 
 private:
     void FillUnvistedUrlQueue();
@@ -26,6 +36,7 @@ private:
     std::vector<std::string> ResolveLinks(
             const std::string& pageUri,
             const std::vector<std::string>& searchResult);
+    void NotifyObservers(const HttpResponse &response) const;
 
     BlockingQueue<std::string> unvisitedUrls;
     BlockingQueue<HttpResponse> httpResponseQueue;
@@ -34,6 +45,7 @@ private:
     HttpClient* httpClient;
 
     std::unique_ptr<LinkFilter> linkFilter;
+    std::vector<CrawlerObserver*> observers;
 };
 
 

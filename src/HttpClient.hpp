@@ -6,6 +6,7 @@
 struct HttpResponse
 {
     std::string uri, header, body;
+    unsigned status;
 };
 
 class HttpClient
