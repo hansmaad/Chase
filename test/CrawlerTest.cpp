@@ -19,7 +19,7 @@ struct CrawlerTestFixture
 
     unsigned VisitedCount(const std::string& url)
     {
-        return std::count(begin(httpClient.visits), end(httpClient.visits), url);
+        return std::count(begin(repository), end(repository), url);
     }
 
     void StartCrawling(std::string startUrl)
@@ -118,5 +118,21 @@ BOOST_AUTO_TEST_CASE(Crawl_HasObserver_AllObserverNotified)
     BOOST_CHECK_EQUAL(counter, 4);
 }
 
+BOOST_AUTO_TEST_CASE(Crawl_HasToWaitForHttpClient)
+{
+    httpClient.AddLink("http://a.de", "b");
+    httpClient.AddLink("http://a.de", "c");
+    httpClient.AddLink("http://a.de/b", "c");
+    httpClient.AddLink("http://a.de/c", "x");
+
+    httpClient.sleepMilliseconds = 100;
+    StartCrawling("http://a.de");
+
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de"), 1);
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de/b"), 1);
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de/c"), 1);
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de/x"), 1);
+
+}
 
 BOOST_AUTO_TEST_SUITE_END()

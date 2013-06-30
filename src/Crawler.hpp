@@ -11,10 +11,11 @@
 
 class CrawlerObserver;
 struct HttpResponse;
+namespace network { class uri; }
 
 class Crawler
 {
-public:
+public:   
     Crawler(UrlRepository& repository, HttpClient& httpClient);
 
     void Crawl();
@@ -30,13 +31,17 @@ public:
     }
 
 private:
+    typedef network::uri Uri;
+
     void FillUnvistedUrlQueue();
     void ProcessNextResponse();
     bool ShouldStopProcess() const;
+    bool ShouldFollowLink(const Uri& baseUri, const Uri& linkUri) const;
     std::vector<std::string> ResolveLinks(
             const std::string& pageUri,
             const std::vector<std::string>& searchResult);
     void NotifyObservers(const HttpResponse &response) const;
+
 
     BlockingQueue<std::string> unvisitedUrls;
     BlockingQueue<HttpResponse> httpResponseQueue;
@@ -46,6 +51,7 @@ private:
 
     std::unique_ptr<LinkFilter> linkFilter;
     std::vector<CrawlerObserver*> observers;
+    unsigned inProgressCount;
 };
 
 

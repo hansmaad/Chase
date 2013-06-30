@@ -2,6 +2,7 @@
 #define HTTP_CLIENT_STUB_HPP
 
 #include <future>
+#include <chrono>
 #include <algorithm>
 #include <map>
 #include "HtmlTestContent.hpp"
@@ -22,6 +23,8 @@ public:
     {
         thread.wait();
     }
+
+    unsigned sleepMilliseconds = 0;
 
 protected:
     virtual void Run() = 0;
@@ -95,6 +98,11 @@ private:
         };
 
         response.body.append(Html5End());
+
+        if (sleepMilliseconds)
+            std::this_thread::sleep_for(
+                std::chrono::milliseconds(sleepMilliseconds));
+
         PushResponse(std::move(response));
     }
 };

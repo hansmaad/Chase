@@ -10,13 +10,15 @@ Crawler::Crawler(UrlRepository& repository, HttpClient& httpClient) :
     unvisitedUrls(10),
     httpResponseQueue(10),
     urlRepository(&repository),
-    httpClient(&httpClient)
+    httpClient(&httpClient),
+    inProgressCount(0)
 {
 
 }
 
 void Crawler::Crawl()
 {
+    inProgressCount = 0;
     FillUnvistedUrlQueue();    
     httpClient->StartAsync(unvisitedUrls, httpResponseQueue);
 
@@ -36,7 +38,13 @@ void Crawler::Crawl()
 
 bool Crawler::ShouldStopProcess() const
 {
-    return !urlRepository->HasUnvisitedUrls() && unvisitedUrls.Empty();
+    return inProgressCount == 0 &&
+           !urlRepository->HasUnvisitedUrls();
+}
+
+bool Crawler::ShouldFollowLink(const Uri& baseUri, const Uri& linkUri) const
+{
+    return !linkFilter || linkFilter->ShouldFollowLink(baseUri, linkUri);
 }
 
 void Crawler::FillUnvistedUrlQueue()
@@ -50,9 +58,9 @@ void Crawler::FillUnvistedUrlQueue()
             break;
 
         urlRepository->PopNextUnvisited();
+        ++inProgressCount;
     }
 }
-
 
 std::vector<std::string> Crawler::ResolveLinks(
         const std::string& pageUri,
@@ -63,20 +71,23 @@ std::vector<std::string> Crawler::ResolveLinks(
     urls.reserve((links.size()));
     for(auto& link : links)
     {
-        auto linkUrl = baseUri.resolve(
+        auto linkUri = baseUri.resolve(
                     network::uri{link},
                     network::uri_comparison_level::string_comparison);
-        if (!linkFilter || linkFilter->ShouldFollowLink(baseUri, linkUrl))
-            urls.push_back(linkUrl.string());
+        if (ShouldFollowLink(baseUri, linkUri))
+            urls.push_back(linkUri.string());
     }
 
     return urls;
 }
 
+
 void Crawler::ProcessNextResponse()
 {
     HtmlSearch htmlSearch;
     auto nextResponse = httpResponseQueue.Pop();
+    --inProgressCount;
+
     NotifyObservers(nextResponse);
     auto searchResult = htmlSearch.Search(nextResponse.body);
 
