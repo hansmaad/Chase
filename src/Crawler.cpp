@@ -38,8 +38,8 @@ void Crawler::Crawl()
 
 bool Crawler::ShouldStopProcess() const
 {
-    return inProgressCount == 0 &&
-           !urlRepository->HasUnvisitedUrls();
+    return inProgressCount == 0 &&              // http client not busy
+           !urlRepository->HasUnvisitedUrls();  // no more uris
 }
 
 bool Crawler::ShouldFollowLink(const Uri& baseUri, const Uri& linkUri) const

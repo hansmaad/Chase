@@ -5,12 +5,8 @@
 #include <network/http/response.hpp>
 
 
-#include "curl/curl.h"
-
-
 namespace
 {
-
 
     inline HttpResponse LoadCppNetlib(std::string nextUri)
     {
@@ -67,19 +63,35 @@ void MultiHttpClient::Wait()
 
 void MultiHttpClient::Run()
 {
+    using namespace network;
+    http::client httpClient;
+
     for(;;)
     {
+        HttpResponse response;
+
         try
-        {
-            auto response = Load(urlQueue->Pop());
-            responseQueue->Push(std::move(response));
+        {            
+            auto nextUri = urlQueue->Pop();
+            auto request = http::client::request{nextUri};
+
+            auto httpResponse = httpClient.get(request);
+
+            response.uri = std::move(nextUri);
+            response.body = body(httpResponse);
+            response.status = status(httpResponse);
         }
         catch(BlockingQueueInterruptedException)
         {
             break;
         }
+        catch(...)
+        {
+            response.status = 0;
+        }
+
+        responseQueue->Push(std::move(response));
     }
 }
-
 
 
