@@ -2,12 +2,7 @@
 #define HTTP_CLIENT_HPP
 
 #include "BlockingQueue.hpp"
-
-struct HttpResponse
-{
-    std::string uri, header, body;
-    unsigned status;
-};
+#include "HttpResponse.hpp"
 
 class HttpClient
 {

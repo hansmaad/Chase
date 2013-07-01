@@ -1,46 +1,6 @@
 #include "MultiHttpClient.hpp"
 
-#include <network/http/client.hpp>
-#include <network/http/request.hpp>
-#include <network/http/response.hpp>
-
-
-namespace
-{
-
-    inline HttpResponse LoadCppNetlib(std::string nextUri)
-    {
-        using namespace network;
-        try
-        {
-            http::client httpClient;
-            auto request = http::client::request{nextUri};
-
-            auto httpResponse = httpClient.get(request);
-
-            HttpResponse response;
-            response.uri = std::move(nextUri);
-            response.body = body(httpResponse);
-            response.status = status(httpResponse);
-
-            return response;
-        }
-        catch(...)
-        {
-            HttpResponse response;
-            response.uri = std::move(nextUri);
-            response.status = 500;
-            return response;
-        }
-    }
-
-    inline HttpResponse Load(std::string nextUri)
-    {
-        return LoadCppNetlib(move(nextUri));
-    }
-}
-
-
+#include "SingleHttpClient.hpp"
 
 
 MultiHttpClient::MultiHttpClient()
@@ -63,8 +23,7 @@ void MultiHttpClient::Wait()
 
 void MultiHttpClient::Run()
 {
-    using namespace network;
-    http::client httpClient;
+    SingleHttpClient httpClient;
 
     for(;;)
     {
@@ -72,14 +31,8 @@ void MultiHttpClient::Run()
 
         try
         {            
-            auto nextUri = urlQueue->Pop();
-            auto request = http::client::request{nextUri};
+            response = httpClient.Get(urlQueue->Pop());
 
-            auto httpResponse = httpClient.get(request);
-
-            response.uri = std::move(nextUri);
-            response.body = body(httpResponse);
-            response.status = status(httpResponse);
         }
         catch(BlockingQueueInterruptedException)
         {
