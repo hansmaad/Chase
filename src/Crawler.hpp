@@ -12,10 +12,11 @@
 class CrawlerObserver;
 struct HttpResponse;
 namespace network { class uri; }
+typedef network::uri Uri;
 
 class Crawler
 {
-public:   
+public:
     Crawler(UrlRepository& repository, HttpClient& httpClient);
 
     void Crawl();
@@ -31,8 +32,6 @@ public:
     }
 
 private:
-    typedef network::uri Uri;
-
     void FillUnvistedUrlQueue();
     void ProcessNextResponse();
     bool ShouldStopProcess() const;

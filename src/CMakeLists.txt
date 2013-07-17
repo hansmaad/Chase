@@ -32,7 +32,7 @@ TARGET_LINK_LIBRARIES(Chase
   ${Boost_LIBRARIES}
   pthread
   curl
-  cppnetlib
+  ${CPPNETLIB_LIBS}
   ssl
   crypto
    ${LINKFLAGS})

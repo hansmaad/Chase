@@ -135,4 +135,36 @@ BOOST_AUTO_TEST_CASE(Crawl_HasToWaitForHttpClient)
 
 }
 
+//BOOST_AUTO_TEST_CASE(Crawl_InvalidUri_NotifiesObserver)
+//{
+//    struct ObserverMock : CrawlerObserver
+//    {
+//        std::string msg;
+//        ErrorCode errorCode;
+//        void NotifyError(ErrorCode error, std::string content) override {
+//            msg = content;
+//            errorCode = error;
+//        }
+//    };
+//    ObserverMock mock;
+//    crawler.AddObserver(&mock);
+//    httpClient.AddLink("http://a.com/", "invalid??");
+//    StartCrawling("http://a.com/");
+//    BOOST_CHECK_EQUAL(mock.msg, "not a valid uri");
+//    BOOST_CHECK(mock.errorCode == ErrorCode::InvalidUri);
+//}
+
+BOOST_AUTO_TEST_CASE(Crawl_VisitsHttpAndHttpsOnly)
+{
+    httpClient.AddLink("http://a.de", "http://a.de/b");
+    httpClient.AddLink("http://a.de", "https://a.de/c");
+    httpClient.AddLink("http://a.de", "mailto:hans@a.de");
+    httpClient.AddLink("http://a.de", "ftp://a.de/d");
+    StartCrawling("http://a.de");
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de/b"), 1);
+    BOOST_CHECK_EQUAL(VisitedCount("https://a.de/c"), 1);
+    BOOST_CHECK_EQUAL(VisitedCount("mailto:hans@a.de"), 0);
+    BOOST_CHECK_EQUAL(VisitedCount("ftp://a.de/d"), 0);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

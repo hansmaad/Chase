@@ -1,9 +1,18 @@
 #include "SingleHttpClient.hpp"
-#include <curl/curl.h>
 
+#define CHASE_USE_CURLNO
+
+#ifdef CHASE_USE_CURL
+#include <curl/curl.h>
+#else
+#include <network/http/client.hpp>
+#include <network/http/request.hpp>
+#include <network/http/response.hpp>
+#endif
+
+#ifdef CHASE_USE_CURL
 namespace
 {
-
 struct GlobalInit
 {
     GlobalInit()
@@ -72,3 +81,32 @@ HttpResponse SingleHttpClient::Get(std::string uri) const
 
     return response;
 }
+
+
+#else
+
+SingleHttpClient::SingleHttpClient()
+{
+}
+
+SingleHttpClient::~SingleHttpClient()
+{
+}
+
+HttpResponse SingleHttpClient::Get(std::string uri) const
+{
+    using namespace network;
+    HttpResponse response;
+
+    http::client httpClient;
+    auto request = http::client::request{uri};
+    request << header("Connection", "close");
+    auto httpResponse = httpClient.get(request);
+
+    response.uri = move(uri);
+    response.body = body(httpResponse);
+    response.status = status(httpResponse);
+    return response;
+}
+
+#endif
