@@ -88,6 +88,30 @@ BOOST_AUTO_TEST_CASE(SearchLinks_HasSingleAnchorWithAdditionalAttributeInBodyUpp
 	BOOST_CHECK_EQUAL(links.front(), "http://www.testurl.com");
 }
 
+BOOST_AUTO_TEST_CASE(SearchLinks_HasHrefInSingleQuotes_ReturnsUrl)
+{
+    WithBody(R"(<a rel="nofollow" href='http://www.testurl.com'>Text</a>)");
+    auto links = SearchLinks();
+    BOOST_REQUIRE(!links.empty());
+    BOOST_CHECK_EQUAL(links.front(), "http://www.testurl.com");
+}
+
+BOOST_AUTO_TEST_CASE(SearchLinks_SingleQuotesInDoubleQuotes_ReturnsUrl)
+{
+    WithBody(R"(<a rel="nofollow" href="http://www.testurl.com/'hallo'">Text</a>)");
+    auto links = SearchLinks();
+    BOOST_REQUIRE(!links.empty());
+    BOOST_CHECK_EQUAL(links.front(), "http://www.testurl.com/'hallo'");
+}
+
+BOOST_AUTO_TEST_CASE(SearchLinks_HasWhiteSpace_ReturnsUrl)
+{
+    WithBody(R"(<a href="hello world">Text</a>)");
+    auto links = SearchLinks();
+    BOOST_REQUIRE(!links.empty());
+    BOOST_CHECK_EQUAL(links.front(), "hello world");
+}
+
 
 BOOST_AUTO_TEST_CASE(SearchLinks_Has3AnchorInBody_Returns3Urls)
 {

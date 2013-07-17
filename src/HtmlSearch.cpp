@@ -109,19 +109,28 @@ struct HtmlSearchImpl
 
     void ReadAttribute(char c)
     {
-        if (c == '"')
+        if (buffer.empty())
         {
-            if (buffer.empty())
-                Store(c);
-            else
+            if (!IsWhitespace(c))
             {
-                StoreLink();
-                ClearBuffer();
-                state = State::SkipTag;
+                if (c == '"' || c == '\'')
+                    Store(c);
+                else
+                {
+                    state = State::SkipTag;
+                }
             }
         }
-        else if (!IsWhitespace(c))
+        else if (c == buffer.front())
+        {
+            StoreLink();
+            ClearBuffer();
+            state = State::SkipTag;
+        }
+        else
+        {
             Store(c);
+        }
     }
 
     void SkipAttribute(char c)
@@ -171,6 +180,7 @@ struct HtmlSearchImpl
 
     void StoreLink()
     {
+        // trim leading quote from buffer
         result.links.emplace_back(buffer, 1);
     }
 
