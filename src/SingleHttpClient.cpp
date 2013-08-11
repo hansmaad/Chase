@@ -1,112 +1,49 @@
 #include "SingleHttpClient.hpp"
 
-#define CHASE_USE_CURLNO
-
-#ifdef CHASE_USE_CURL
-#include <curl/curl.h>
-#else
 #include <network/http/client.hpp>
 #include <network/http/request.hpp>
 #include <network/http/response.hpp>
-#endif
 
-#ifdef CHASE_USE_CURL
 namespace
 {
-struct GlobalInit
-{
-    GlobalInit()
-    {
-        curl_global_init(CURL_GLOBAL_ALL);
-    }
 
-    ~GlobalInit()
-    {
-        curl_global_cleanup();
-    }
-};
-
-inline void* InitHandle()
+inline bool BeginsWith(const std::string& text, const std::string& substr)
 {
-    static GlobalInit initializer;
-    return curl_easy_init();
+    return text.compare(0, substr.length(), substr) == 0;
 }
 
-inline void Cleanup(void* handle)
+inline bool ShouldLoadBodyOfType(const std::string& contentType)
 {
-    curl_easy_cleanup(handle);
+    static const std::string htmlType = "text/html";
+    return BeginsWith(contentType, htmlType);
 }
-
-
-struct Content
-{
-    std::string data;
-    static size_t Write(char * data, size_t size, size_t nmemb, void * p)
-    {
-        return static_cast<Content*>(p)->WriteImpl(data, size, nmemb);
-    }
-
-    size_t WriteImpl(char* ptr, size_t size, size_t nmemb)
-    {
-        data.insert(end(data), ptr, ptr + size * nmemb);
-        return size * nmemb;
-    }
-};
 
 }
 
-SingleHttpClient::SingleHttpClient()
-    : handle(InitHandle())
-{
-}
-
-SingleHttpClient::~SingleHttpClient()
-{
-    Cleanup(handle);
-}
-
-
-HttpResponse SingleHttpClient::Get(std::string uri) const
-{
-    Content content;
-
-    curl_easy_setopt(handle, CURLOPT_WRITEDATA, &content);
-    curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, &Content::Write);
-    curl_easy_setopt(handle, CURLOPT_URL, uri.c_str());
-    curl_easy_perform(handle);
-    HttpResponse response;
-    response.uri = move(uri);
-    response.body = move(content.data);
-    curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &response.status);
-
-    return response;
-}
-
-
-#else
-
-SingleHttpClient::SingleHttpClient()
-{
-}
-
-SingleHttpClient::~SingleHttpClient()
-{
-}
-
-HttpResponse SingleHttpClient::Get(std::string uri) const
+HttpResponse SingleHttpClient::Get(const std::string& uri) const
 {
     using namespace network;
+
     HttpResponse response;
+    response.uri = move(uri);
 
     http::client httpClient;
     auto request = http::client::request{uri};
     request << header("Connection", "close");
-    auto httpResponse = httpClient.get(request);
 
-    response.uri = move(uri);
-    response.body = body(httpResponse);
-    response.status = status(httpResponse);
+    auto httpHeadResponse = httpClient.head(request);
+    response.status = status(httpHeadResponse);
+
+    std::multimap<std::string, std::string> head = headers(httpHeadResponse);
+    auto it = head.find("Content-Type");
+    response.contentType = it == end(head) ? "unknown" : it->second;
+
+    if (ShouldLoadBodyOfType(response.contentType))
+    {
+        auto httpResponse = httpClient.get(request);
+        response.body = body(httpResponse);
+    }
+
     return response;
 }
 
-#endif

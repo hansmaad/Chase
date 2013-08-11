@@ -7,10 +7,8 @@
 class SingleHttpClient
 {
 public:
-    SingleHttpClient();
-    ~SingleHttpClient();
+    HttpResponse Get(const std::string& uri) const;
 
-    HttpResponse Get(std::string uri) const;
 private:
     void* handle;
 };

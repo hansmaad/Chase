@@ -19,7 +19,8 @@ struct ResponseReporter : CrawlerObserver
 {
     void NotifyResponse(const HttpResponse& response) override
     {
-        std::cout << response.status << "  " << response.uri << "\n";
+        std::cout << response.status << ":  (" << response.contentType << ") "
+                  << response.uri << " length: " << response.body.length() << "\n";
     }
 
     void NotifyError(ErrorCode error, std::string content) override
@@ -33,10 +34,46 @@ struct ResponseReporter : CrawlerObserver
     }
 };
 
+void test()
+{
+    using namespace std;
+    using namespace network;
+    HttpResponse response;
 
+    http::client httpClient;
+    auto request = http::client::request{"http://www.poddox.com/de/ipod-software-download/poddox_xi.zip"};
+    request << header("Connection", "close");
+
+    auto httpHeadResponse = httpClient.head(request);
+    typedef decltype(headers(httpHeadResponse))::container_type headers_map;
+
+    headers_map header = headers(httpHeadResponse);
+    auto it = header.find("Content-Type");
+    if (it != end(header) && it->second == "text/html")
+    {
+        std::cout << "html content\n";
+    }
+    else
+    {
+        std::cout << "non html content\n";
+    }
+
+    for(const auto& i : header)
+    {
+        std::cout << i.first << " " << i.second << "\n";
+    }
+
+    //auto httpResponse = httpClient.get(request);
+
+}
 
 int main(int argc, char* argv[])
 {
+
+
+    //test();
+    //return 0;
+
 
     if (argc < 2)
     {

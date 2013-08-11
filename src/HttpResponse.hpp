@@ -5,7 +5,7 @@
 
 struct HttpResponse
 {
-    std::string uri, header, body;
+    std::string uri, header, body, contentType;
     unsigned status;
 };
 
