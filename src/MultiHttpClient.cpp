@@ -13,12 +13,14 @@ void MultiHttpClient::StartAsync(
 {
     this->urlQueue = &urlQueue;
     this->responseQueue = &responseQueue;
-    thread = std::async(std::launch::async, [this]() { Run(); });
+    for(int i = 0; i < 5; ++i)
+        threads.push_back(std::async(std::launch::async, [this]() { Run(); }));
 }
 
 void MultiHttpClient::Wait()
 {
-    thread.wait();
+    for(auto&& thread : threads)
+        thread.wait();
 }
 
 void MultiHttpClient::Run()
@@ -46,5 +48,3 @@ void MultiHttpClient::Run()
         responseQueue->Push(std::move(response));
     }
 }
-
-

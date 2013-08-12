@@ -3,6 +3,7 @@
 
 #include "HttpClient.hpp"
 #include <future>
+#include <vector>
 
 class MultiHttpClient : public HttpClient
 {
@@ -18,7 +19,7 @@ public:
 private:
     void Run();
 
-    std::future<void> thread;
+    std::vector<std::future<void>> threads;
     InputQueue* urlQueue;
     ResponseQueue* responseQueue;
 };

@@ -44,7 +44,7 @@ void Crawler::Crawl()
 
 bool Crawler::ShouldStopProcess() const
 {
-    return inProgressCount == 0&&               // http client not busy
+    return inProgressCount == 0 &&              // http client not busy
            !urlRepository->HasUnvisitedUrls();  // no more uris
 }
 
@@ -120,7 +120,6 @@ std::vector<std::string> Crawler::ResolveLinks(
            continue;
         }
         auto resolvedUri = baseUri.resolve(
-                    //network::uri{link},
                     linkUri.get(),
                     network::uri_comparison_level::string_comparison);
         if (ShouldFollowLink(baseUri, resolvedUri))
