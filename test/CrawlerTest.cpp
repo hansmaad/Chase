@@ -167,6 +167,43 @@ BOOST_AUTO_TEST_CASE(Crawl_VisitsHttpAndHttpsOnly)
     BOOST_CHECK_EQUAL(VisitedCount("ftp://a.de/d"), 0);
 }
 
+BOOST_AUTO_TEST_CASE(Crawl_DoesntVisitFragmentOnKnownPage)
+{
+    httpClient.AddLink("http://a.de/a", "http://a.de/b");
+    httpClient.AddLink("http://a.de/b", "http://a.de/a#c");
 
+    StartCrawling("http://a.de/a");
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de/a"), 1);
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de/b"), 1);
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de/a#c"), 0);
+}
+
+BOOST_AUTO_TEST_CASE(Crawl_DoesVisitFragmentOnUnknownPage)
+{
+    httpClient.AddLink("http://a.de/a", "http://a.de/b#c");
+
+    StartCrawling("http://a.de/a");
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de/a"), 1);
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de/b"), 1);
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de/b#c"), 0);
+}
+
+BOOST_AUTO_TEST_CASE(Crawl_VisitsRedirectTarget)
+{
+    httpClient.AddRedirect("http://a.de/a", "http://a.de/b");
+
+    StartCrawling("http://a.de/a");
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de/a"), 1);
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de/b"), 1);
+}
+
+BOOST_AUTO_TEST_CASE(Crawl_VisitsRelativeRedirectTarget)
+{
+    httpClient.AddRedirect("http://a.de/a", "b");
+
+    StartCrawling("http://a.de/a");
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de/a"), 1);
+    BOOST_CHECK_EQUAL(VisitedCount("http://a.de/b"), 1);
+}
 
 BOOST_AUTO_TEST_SUITE_END()

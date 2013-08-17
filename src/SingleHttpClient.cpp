@@ -33,12 +33,9 @@ HttpResponse SingleHttpClient::Get(const std::string& uri) const
 
     auto httpHeadResponse = httpClient.head(request);
     response.status = status(httpHeadResponse);
+    response.header = headers(httpHeadResponse);
 
-    std::multimap<std::string, std::string> head = headers(httpHeadResponse);
-    auto it = head.find("Content-Type");
-    response.contentType = it == end(head) ? "unknown" : it->second;
-
-    if (ShouldLoadBodyOfType(response.contentType))
+    if (ShouldLoadBodyOfType(response.ContentType()))
     {
         auto httpResponse = httpClient.get(request);
         response.body = body(httpResponse);

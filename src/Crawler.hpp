@@ -3,11 +3,15 @@
 
 #include <memory>
 #include <vector>
+#include <boost/optional.hpp>
 #include "BlockingQueue.hpp"
 #include "HttpClient.hpp"
 #include "UrlRepository.hpp"
 #include "LinkFilter.hpp"
 
+
+template <typename T>
+using optional = boost::optional<T>;
 
 class CrawlerObserver;
 struct HttpResponse;
@@ -39,6 +43,8 @@ private:
     std::vector<std::string> ResolveLinks(
             const std::string& pageUri,
             const std::vector<std::string>& searchResult);
+    optional<std::string> ResolveLink(
+            const Uri& baseUri, const std::string& link);
     void NotifyObservers(const HttpResponse &response) const;
 
 

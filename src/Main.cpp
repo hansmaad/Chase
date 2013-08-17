@@ -9,7 +9,7 @@ struct ResponseReporter : CrawlerObserver
 {
     void NotifyResponse(const HttpResponse& response) override
     {
-        std::cout << response.status << ":  (" << response.contentType << ") "
+        std::cout << response.status << ":  (" << response.ContentType() << ") "
                   << response.uri << " length: " << response.body.length() << "\n";
     }
 

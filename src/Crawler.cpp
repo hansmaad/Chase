@@ -1,15 +1,13 @@
 #include <future>
 #include <algorithm>
-#include <boost/optional.hpp>
-#include <network/uri.hpp>
 
+#include <network/uri.hpp>
 #include "Crawler.hpp"
 #include "HtmlSearch.hpp"
 #include "CrawlerObserver.hpp"
+#include "UriResolver.hpp"
+#include "Status.hpp"
 
-
-template <typename T>
-using optional = boost::optional<T>;
 
 
 Crawler::Crawler(UrlRepository& repository, HttpClient& httpClient) :
@@ -89,18 +87,24 @@ void Crawler::FillUnvistedUrlQueue()
 
 namespace
 {
-    optional<network::uri> TryParseUri(const std::string& uri)
+
+optional<network::uri> TryParseUri(const std::string& uri)
+{
+    try
     {
-        try
-        {
-            return network::uri{uri};
-        }
-        catch(network::uri_syntax_error)
-        {        
-            return optional<network::uri>{};
-        }
+        return network::uri{uri};
+    }
+    catch(network::uri_syntax_error)
+    {
+        return optional<network::uri>{};
     }
 }
+
+
+
+}  // namespace
+
+
 std::vector<std::string> Crawler::ResolveLinks(
         const std::string& pageUri,
         const std::vector<std::string>& links)
@@ -110,25 +114,32 @@ std::vector<std::string> Crawler::ResolveLinks(
     urls.reserve(links.size());
     for(auto& link : links)
     {
-        auto linkUri = TryParseUri(link);
-        if (!linkUri)
-        {
-            for(auto&& observer : observers)
-            {
-                observer->NotifyError(ErrorCode::InvalidUri, link);
-            }
-           continue;
-        }
-        auto resolvedUri = baseUri.resolve(
-                    linkUri.get(),
-                    network::uri_comparison_level::string_comparison);
-        if (ShouldFollowLink(baseUri, resolvedUri))
-            urls.push_back(resolvedUri.string());
+        auto resolvedUri = ResolveLink(baseUri, link);
+        if (resolvedUri)
+            urls.push_back(resolvedUri.get());
     }
 
     return urls;
 }
 
+optional<std::string> Crawler::ResolveLink(
+        const Uri& baseUri, const std::string& link)
+{
+    auto linkUri = TryParseUri(link);
+    if (!linkUri)
+    {
+        for(auto&& observer : observers)
+        {
+            observer->NotifyError(ErrorCode::InvalidUri, link);
+        }
+        return optional<std::string>{};
+    }
+    UriResolver uriResolver;
+    auto resolvedUri = uriResolver.Resolve(baseUri, linkUri.get());
+    if (ShouldFollowLink(baseUri, resolvedUri))
+        return resolvedUri.string();
+    return optional<std::string>{};
+}
 
 void Crawler::ProcessNextResponse()
 {
@@ -137,9 +148,18 @@ void Crawler::ProcessNextResponse()
     --inProgressCount;
 
     NotifyObservers(nextResponse);
-    auto searchResult = htmlSearch.Search(nextResponse.body);
 
-    urlRepository->AddUrls(ResolveLinks(nextResponse.uri, searchResult.links));
+    if (Status::IsOk(nextResponse.status))
+    {
+        auto searchResult = htmlSearch.Search(nextResponse.body);
+        urlRepository->AddUrls(ResolveLinks(nextResponse.uri, searchResult.links));
+    }
+    else if (Status::IsRedirect(nextResponse.status))
+    {
+        auto baseUri = network::uri{nextResponse.uri};
+        auto resolved = ResolveLink(baseUri, nextResponse.Location());
+        urlRepository->AddUrls(std::vector<std::string>{1, resolved.get()});
+    }
 }
 
 void Crawler::NotifyObservers(const HttpResponse& response) const

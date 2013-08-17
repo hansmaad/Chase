@@ -50,8 +50,16 @@ class HttpClientStub : public HttpClientBase
 public:
     void AddLink(std::string from, std::string to)
     {
-        //links.emplace(std::move(from), std::move(to));
-        links.insert(std::make_pair(std::move(from), std::move(to)));
+        auto& info = links[from];
+        info.status = 200;
+        info.links.emplace_back(std::move(to));
+    }
+
+    void AddRedirect(std::string from, std::string to, int status = 301)
+    {
+        auto& info = links[from];
+        info.status = status;
+        info.links.emplace_back(std::move(to));
     }
 
     std::vector<std::string> visits;
@@ -73,11 +81,17 @@ protected:
     }
 
 private:
-    std::multimap<std::string, std::string> links;
+    struct info
+    {
+        int status = 200;
+        std::vector<std::string> links;
+    };
+
+    std::map<std::string, info> links;
 
     std::string MakeAnchor(const std::string& url)
     {
-        std::string a = "<a href=\"" + url + "\">link</a>";
+        auto a = "<a href=\"" + url + "\">link</a>";
         return a;
     }
 
@@ -87,15 +101,20 @@ private:
         response.body = Html5Begin();
         response.uri = GetNextUrl();
 
-        //auto nextUrl = GetNextUrl();
-        visits.push_back(response.uri);
+        auto& info = links[response.uri];
+        response.status = info.status;
 
-
-        auto linksRange = links.equal_range(response.uri);
-        for(auto it = linksRange.first; it != linksRange.second; ++it)
+        if (response.status == 200)
         {
-            response.body.append(MakeAnchor(it->second));
-        };
+            for(const auto& link : info.links)
+            {
+                response.body.append(MakeAnchor(link));
+            };
+        }
+        else
+        {
+            response.header.insert(std::make_pair("Location", info.links.front()));
+        }
 
         response.body.append(Html5End());
 
@@ -103,6 +122,7 @@ private:
             std::this_thread::sleep_for(
                 std::chrono::milliseconds(sleepMilliseconds));
 
+         visits.push_back(response.uri);
         PushResponse(std::move(response));
     }
 };
