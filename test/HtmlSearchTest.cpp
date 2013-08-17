@@ -157,4 +157,35 @@ BOOST_AUTO_TEST_CASE(SearchLinks_HasLinkInComment_LinkNotAdded)
 	BOOST_CHECK(HasLink("3"));
 }
 
+namespace
+{
+struct SearchMock : AttachedSearch {
+    std::string handled;
+    void Handle(char c) override { handled.push_back(c); }
+    void Reset() override { handled.clear(); }
+};
+}
+
+BOOST_AUTO_TEST_CASE(Search_2AttachedSearches_CallsHandleForEachChar)
+{
+    auto text = std::string{"Hello World"};
+    SearchMock mock1, mock2;
+    search.AttachSearch(&mock1);
+    search.AttachSearch(&mock2);
+    search.Search(text);
+    BOOST_CHECK_EQUAL(mock1.handled, "Hello World");
+    BOOST_CHECK_EQUAL(mock2.handled, "Hello World");
+}
+
+
+BOOST_AUTO_TEST_CASE(Search_AttachedSearch_CallsReset)
+{
+    auto text = std::string{"Hello World"};
+    SearchMock mock;
+    search.AttachSearch(&mock);
+    search.Search(text);
+    search.Search(text);
+    BOOST_CHECK_EQUAL(mock.handled, "Hello World");
+}
+
 BOOST_AUTO_TEST_SUITE_END()

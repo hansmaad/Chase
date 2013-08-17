@@ -1,9 +1,9 @@
 #include "HtmlSearch.hpp"
 #include <cctype>
+#include <vector>
 
 
-
-struct HtmlSearchImpl
+struct HtmlSearch::Impl
 {
     enum class State
     {
@@ -20,16 +20,31 @@ struct HtmlSearchImpl
     HtmlSearchResult result;
     std::string buffer;
     State state;
+    std::vector<AttachedSearch*> searches;
 
     HtmlSearchResult Search(const std::string& htmlContent)
     {
+        ResetSearches();
         state = State::Default;
         for(auto c : htmlContent)
         {
+            HandleBySearches(c);
             Handle(c);
         }
 
         return result;
+    }
+
+    void ResetSearches()
+    {
+        for(auto&& search : searches)
+            search->Reset();
+    }
+
+    void HandleBySearches(char c)
+    {
+        for(auto&& search : searches)
+            search->Handle(c);
     }
 
     void Handle(char c)
@@ -191,12 +206,22 @@ struct HtmlSearchImpl
 };
 
 
+HtmlSearch::HtmlSearch()
+    : impl{new Impl{}}
+{
+
+}
+
+HtmlSearch::~HtmlSearch() = default;
 
 HtmlSearchResult HtmlSearch::Search(const std::string& htmlContent)
 {
-    HtmlSearchImpl search;
+    return impl->Search(htmlContent);
+}
 
-    return search.Search(htmlContent);
+void HtmlSearch::AttachSearch(AttachedSearch *search)
+{
+    impl->searches.push_back(search);
 }
 
 

@@ -47,7 +47,6 @@ private:
             const Uri& baseUri, const std::string& link);
     void NotifyObservers(const HttpResponse &response) const;
 
-
     BlockingQueue<std::string> unvisitedUrls;
     BlockingQueue<HttpResponse> httpResponseQueue;
 

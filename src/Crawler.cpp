@@ -9,7 +9,6 @@
 #include "Status.hpp"
 
 
-
 Crawler::Crawler(UrlRepository& repository, HttpClient& httpClient) :
     unvisitedUrls(10),
     httpResponseQueue(10),
@@ -99,8 +98,6 @@ optional<network::uri> TryParseUri(const std::string& uri)
         return optional<network::uri>{};
     }
 }
-
-
 
 }  // namespace
 
