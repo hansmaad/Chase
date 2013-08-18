@@ -44,5 +44,13 @@ BOOST_AUTO_TEST_CASE(Results_SingleMatchInLine_ResultsContainsMatch)
     BOOST_CHECK_EQUAL(search.Results().front().lineNumber, 2);
 }
 
+BOOST_AUTO_TEST_CASE(Results_MatchesInDifferentLines_ResultsContainsMatches)
+{
+    text = "<body>\n<p>\nHello World\n</p>\nHello World!</body>";
+    Search("World");
+    BOOST_REQUIRE_EQUAL(search.Results().size(), 2);
+    BOOST_CHECK_EQUAL(search.Results()[0].lineNumber, 3);
+    BOOST_CHECK_EQUAL(search.Results()[1].lineNumber, 5);
+}
 
 BOOST_AUTO_TEST_SUITE_END()

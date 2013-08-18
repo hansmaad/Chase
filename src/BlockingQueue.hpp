@@ -82,8 +82,6 @@ public:
     {
         Lock lock = GetLock();
         interrupted = true;
-        NotifyNotEmpty();
-        NotifyNotFull();
         notEmpty.notify_all();
         notFull.notify_all();
     }
