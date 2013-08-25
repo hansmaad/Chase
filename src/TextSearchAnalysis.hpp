@@ -25,6 +25,11 @@ class TextSearchAnalysis : public Analysis
 public:
     void Run(const HttpResponse& response) override;
 
+    void SearchFor(std::string text)
+    {
+        searchFor = std::move(text);
+    }
+
     void SetObserver(TextSearchObserver& observer)
     {
         this->observer = &observer;
@@ -32,6 +37,7 @@ public:
 
 private:
     TextSearchObserver* observer;
+    std::string searchFor;
 };
 
 
