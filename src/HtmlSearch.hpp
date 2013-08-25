@@ -1,11 +1,10 @@
 #ifndef HTML_SEARCH_HPP
 #define HTML_SEARCH_HPP
 
-
 #include <string>
 #include <memory>
 #include <vector>
-#include "AttachedSearch.hpp"
+
 
 struct HtmlSearchResult
 {
@@ -19,7 +18,6 @@ public:
     HtmlSearch();
     ~HtmlSearch();
     HtmlSearchResult Search(const std::string& htmlContent);
-    void AttachSearch(AttachedSearch* search);
 
 private:
     struct Impl;

@@ -6,7 +6,6 @@ file(GLOB header_files *.hpp)
 SET(Boost_USE_STATIC_LIBS        ON)
 SET(Boost_USE_MULTITHREADED      ON)
 
-
 include_directories(
   ${Boost_INCLUDE_DIRS}
   ${CPP-NETLIB_SOURCE_DIR}/uri/src

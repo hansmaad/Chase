@@ -140,7 +140,6 @@ optional<std::string> Crawler::ResolveLink(
 
 void Crawler::ProcessNextResponse()
 {
-    HtmlSearch htmlSearch;
     auto nextResponse = httpResponseQueue.Pop();
     --inProgressCount;
 
@@ -148,6 +147,7 @@ void Crawler::ProcessNextResponse()
 
     if (Status::IsOk(nextResponse.status))
     {
+        HtmlSearch htmlSearch;
         auto searchResult = htmlSearch.Search(nextResponse.body);
         urlRepository->AddUrls(ResolveLinks(nextResponse.uri, searchResult.links));
     }

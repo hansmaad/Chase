@@ -3,49 +3,83 @@
 #include "TextSearch.hpp"
 
 
-void TextSearch::Handle(char c)
+struct TextSearch
 {
-    if (c == '\n')
+    unsigned lineNumber = 1;
+    std::vector<TextSearchMatch> results;
+    std::string::const_iterator cursor;
+    const std::string* text;
+    const std::string* searchFor;
+
+    void Search(
+            const std::string &text,
+            const std::string &searchFor)
     {
-        ++lineNumber;
+        this->searchFor = &searchFor;
+        this->text = &text;
+
+        Search();
     }
-    if (c == *cursor)
+
+    void Search()
     {
-        ++cursor;
-    }
-    else
-    {
+        if (searchFor->empty())
+            throw std::runtime_error{"search text must not be empty"};
+
         ResetCursor();
+
+        for(auto c : *text)
+        {
+            Handle(c);
+        }
     }
-    if (cursor == end(searchText))
+
+    void ResetCursor()
     {
-        TextSearchResult result;
-        result.lineNumber = lineNumber;
-        results.push_back(result);
-        ResetCursor();
+        cursor = begin(*searchFor);
     }
+
+    void Handle(char c)
+    {
+        if (c == '\n')
+        {
+            ++lineNumber;
+        }
+        if (c == *cursor)
+        {
+            ++cursor;
+        }
+        else
+        {
+            ResetCursor();
+        }
+        if (IsMatch())
+        {
+            TextSearchMatch result;
+            result.lineNumber = lineNumber;
+            results.push_back(result);
+            ResetCursor();
+        }
+    }
+
+    bool IsMatch()
+    {
+        return cursor == end(*searchFor);
+    }
+};
+
+
+
+
+std::vector<TextSearchMatch> SearchText(
+        const std::string &text, const std::string &searchFor)
+{
+    TextSearch search;
+    search.Search(text, searchFor);
+    return std::move(search.results);
 }
 
-void TextSearch::ResetCursor()
-{
-    cursor = begin(searchText);
-}
 
-void TextSearch::Reset()
-{
-    results.clear();
-    lineNumber = 1;
-    assert(!searchText.empty());
-    ResetCursor();
-}
-
-void TextSearch::SearchFor(std::string searchText)
-{
-    if (searchText.empty())
-        throw std::runtime_error{"search text must not be empty"};
-    this->searchText = std::move(searchText);
-    ResetCursor();
-}
 
 
 

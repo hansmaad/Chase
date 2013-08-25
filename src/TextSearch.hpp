@@ -3,35 +3,19 @@
 
 #include <vector>
 #include <string>
-#include "AttachedSearch.hpp"
+
+#include "Analysis.hpp"
 
 
-struct TextSearchResult
+struct TextSearchMatch
 {
     int lineNumber;
 };
 
-class TextSearch : public AttachedSearch
-{
-public:
-    void Handle(char c) override;
 
-    void Reset() override;
+std::vector<TextSearchMatch> SearchText(
+        const std::string& text, const std::string& searchFor);
 
-    void SearchFor(std::string searchText);
 
-    const std::vector<TextSearchResult> Results() const
-    {
-        return results;
-    }
-
-private:
-    void ResetCursor();
-
-    std::vector<TextSearchResult> results;
-    std::string searchText;
-    std::string::const_iterator cursor;
-    unsigned lineNumber = 1;
-};
 
 #endif // TEXTSEARCH_HPP
