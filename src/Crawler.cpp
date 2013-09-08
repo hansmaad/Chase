@@ -150,6 +150,8 @@ void Crawler::ProcessNextResponse()
         HtmlSearch htmlSearch;
         auto searchResult = htmlSearch.Search(nextResponse.body);
         urlRepository->AddUrls(ResolveLinks(nextResponse.uri, searchResult.links));
+
+        RunAnalyses(nextResponse);
     }
     else if (Status::IsRedirect(nextResponse.status))
     {
@@ -164,6 +166,14 @@ void Crawler::NotifyObservers(const HttpResponse& response) const
     for(auto&& observer : observers)
     {
         observer->NotifyResponse(response);
+    }
+}
+
+void Crawler::RunAnalyses(const HttpResponse &response) const
+{
+    for(auto&& a : analyses)
+    {
+        a->Run(response);
     }
 }
 

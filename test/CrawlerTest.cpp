@@ -1,10 +1,12 @@
 #include <boost/test/unit_test.hpp>
+#include <future>
+
 #include "HttpClientStub.hpp"
 #include "Crawler.hpp"
 #include "InMemoryUrlRepository.hpp"
 #include "ExternalLinkFilter.hpp"
 #include "CrawlerObserver.hpp"
-#include <future>
+#include "Analysis.hpp"
 
 
 struct CrawlerTestFixture
@@ -111,8 +113,8 @@ BOOST_AUTO_TEST_CASE(Crawl_HasObserver_AllObserverNotified)
     ObserverMock m1, m2;
     m1.c = m2.c = &counter;
 
-    crawler.AddObserver(&m1);
-    crawler.AddObserver(&m2);
+    crawler.AddObserver(m1);
+    crawler.AddObserver(m2);
     httpClient.AddLink("http://www.google.de", "http://www.google.com");
     StartCrawling("http://www.google.de");
     BOOST_CHECK_EQUAL(counter, 4);
@@ -147,7 +149,7 @@ BOOST_AUTO_TEST_CASE(Crawl_InvalidUri_NotifiesObserver)
         }
     };
     ObserverMock mock;
-    crawler.AddObserver(&mock);
+    crawler.AddObserver(mock);
     httpClient.AddLink("http://a.com/", "invalid\nwithnewline");
     StartCrawling("http://a.com/");
     BOOST_CHECK_EQUAL(mock.msg, "invalid\nwithnewline");
@@ -204,6 +206,21 @@ BOOST_AUTO_TEST_CASE(Crawl_VisitsRelativeRedirectTarget)
     StartCrawling("http://a.de/a");
     BOOST_CHECK_EQUAL(VisitedCount("http://a.de/a"), 1);
     BOOST_CHECK_EQUAL(VisitedCount("http://a.de/b"), 1);
+}
+
+BOOST_AUTO_TEST_CASE(RunsAnalysesOnResponse)
+{
+    struct AnalysisMock : Analysis {
+        std::string uri;
+        void Run(const HttpResponse& response) override {
+            uri = response.uri;
+        }
+    } analysis1, analysis2;
+    crawler.AddAnalysis(analysis1);
+    crawler.AddAnalysis(analysis2);
+    StartCrawling("http://a.de/");
+    BOOST_CHECK_EQUAL(analysis1.uri, "http://a.de/");
+    BOOST_CHECK_EQUAL(analysis2.uri, "http://a.de/");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

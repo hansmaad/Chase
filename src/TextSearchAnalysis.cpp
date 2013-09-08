@@ -10,7 +10,8 @@ void TextSearchAnalysis::Run(const HttpResponse &response)
         TextSearchResult searchResult;
         searchResult.uri = response.uri;
         searchResult.matches = std::move(results);
-        observer->NotifyMatch(searchResult);
+        if (observer)
+            observer->NotifyMatch(searchResult);
     }
 }
 

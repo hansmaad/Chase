@@ -23,6 +23,12 @@ public:
 class TextSearchAnalysis : public Analysis
 {
 public:
+    TextSearchAnalysis() : observer(nullptr) {}
+
+    TextSearchAnalysis(std::string search)
+        : observer(nullptr), searchFor(move(search))
+    {}
+
     void Run(const HttpResponse& response) override;
 
     void SearchFor(std::string text)

@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(EmptyText_NotNotified)
     BOOST_CHECK(!observer.notified);
 }
 
-BOOST_AUTO_TEST_CASE(HasMatch_NotNotified)
+BOOST_AUTO_TEST_CASE(HasMatch_Notified)
 {
     Search("Hello World", "ll");
     BOOST_REQUIRE(observer.notified);

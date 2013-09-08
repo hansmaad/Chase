@@ -8,7 +8,7 @@
 #include "HttpClient.hpp"
 #include "UrlRepository.hpp"
 #include "LinkFilter.hpp"
-
+#include "Analysis.hpp"
 
 template <typename T>
 using optional = boost::optional<T>;
@@ -30,9 +30,14 @@ public:
         linkFilter = move(filter);
     }
 
-    void AddObserver(CrawlerObserver* observer)
+    void AddObserver(CrawlerObserver& observer)
     {
-        observers.push_back(observer);
+        observers.push_back(&observer);
+    }
+
+    void AddAnalysis(Analysis& analysis)
+    {
+        analyses.push_back(&analysis);
     }
 
 private:
@@ -45,7 +50,9 @@ private:
             const std::vector<std::string>& searchResult);
     optional<std::string> ResolveLink(
             const Uri& baseUri, const std::string& link);
+
     void NotifyObservers(const HttpResponse &response) const;
+    void RunAnalyses(const HttpResponse &response) const;
 
     BlockingQueue<std::string> unvisitedUrls;
     BlockingQueue<HttpResponse> httpResponseQueue;
@@ -55,6 +62,7 @@ private:
 
     std::unique_ptr<LinkFilter> linkFilter;
     std::vector<CrawlerObserver*> observers;
+    std::vector<Analysis*> analyses;
     unsigned inProgressCount;
 };
 
